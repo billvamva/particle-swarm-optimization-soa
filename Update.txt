@@ -1,0 +1,9 @@
+Initial Goals:
+
+Change dimensions of problem
+
+Experiment using set number of iterations and particles
+
+Plot number of dimension with rising time, settling time and overshoot
+
+Shift all dimensions to 240 points using upsampling.
