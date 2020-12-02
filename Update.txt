@@ -29,3 +29,4 @@ Answer: Possibly object is being modified after each iteration? Would not explai
 - path_to_pso_data = depends on self.directory but gets altered somewhere?
 
 - why is path_to_embedded_signal None?
+- look line 847 used to find Best fitness line.
