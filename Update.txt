@@ -7,3 +7,25 @@ Experiment using set number of iterations and particles
 Plot number of dimension with rising time, settling time and overshoot
 
 Shift all dimensions to 240 points using upsampling.
+
+
+Meeting 04/12/2020:
+
+- Tried to change getSOAoutput methods in optimization.py and distort_tf.py
+- Managed to upsample U but then data was saved in 240 point folder only
+- Issue with U: Turns from numpy array to list in one of the last iterations
+- Should U and T have the same number of points? Value Error
+- path_to_pso_data should be changed?
+- what is m and K? why is m a different variable if it is equal to num_points?
+- line 894: Index is bool but is given as None?
+- method runPSOalgorithm: why do we initialize copies? Answer: So that other particles get different results that are not biased.
+FOLLOWUP:
+- Why do we reset for next PSO run if they are copied from self at the beginning? Only curr_iter should be reset
+- rt_st_os analysis is a matrix not a list: rows are different values and columns are the iterations.
+- example data: data_df = pd.dataframe(data) -> data_df.to_csv(path)
+- run PSO algorithm modifies path_to_pso_data to include rep in line 939
+- Where is path_to_pso_data modified that when number of points change it gets affected?
+Answer: Possibly object is being modified after each iteration? Would not explain why it does not allow after each repetition.
+- path_to_pso_data = depends on self.directory but gets altered somewhere?
+
+- why is path_to_embedded_signal None?
