@@ -41,7 +41,7 @@ Answer: Possibly object is being modified after each iteration? Would not explai
 - Cost is essentially MSE?
 - Is there somewhere where the path is changed if the points in U and T are changed?
 
-- What do I need to change except for SOA output and t? g line 955, 990 and 1009; self.x line 169 ; curr_outputs; look x-value line 1030--> anything using self.m??
+- What do I need to change except for SOA output and t? g line 955, 990 and 1009; self.x line 169 ; curr_outputs line 812; look x-value line 1030--> anything using self.m??
 - Ask about 813: How is this used?
 - Issue either with m or with path_to_pso_data
 
@@ -59,3 +59,5 @@ Traceback (most recent call last):
   File "c:\users\billv\3project\soa_driving\pso\soa\optimisation2.py", line 847, in __evaluateParticlePositions
     curr_outputs[j, :] = PV
 ValueError: could not broadcast input array from shape (240) into shape (20)
+
+- t is used to calculate number of points: analyse.RessponseMeasurements
