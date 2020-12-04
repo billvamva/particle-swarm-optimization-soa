@@ -30,3 +30,8 @@ Answer: Possibly object is being modified after each iteration? Would not explai
 
 - why is path_to_embedded_signal None?
 - look line 847 used to find Best fitness line.
+
+- Series of code being run: Class is initiliased in optimization using run_test (used for threading), Constructor creates init values and path etc, runPSO algorithm.
+
+- Important question: Why is U reshaped from (239,) to (239,1)
+- Find out what X0 is.
