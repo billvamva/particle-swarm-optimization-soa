@@ -61,3 +61,5 @@ Traceback (most recent call last):
 ValueError: could not broadcast input array from shape (240) into shape (20)
 
 - t is used to calculate number of points: analyse.RessponseMeasurements
+
+- How to overcome K in case 'whole_signal' . Start_opt_index, end_opt_index?
