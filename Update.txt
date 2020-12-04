@@ -44,3 +44,18 @@ Answer: Possibly object is being modified after each iteration? Would not explai
 - What do I need to change except for SOA output and t? g line 955, 990 and 1009; self.x line 169 ; curr_outputs; look x-value line 1030--> anything using self.m??
 - Ask about 813: How is this used?
 - Issue either with m or with path_to_pso_data
+
+- ERROR when upsampling:
+Process Process-2:
+Traceback (most recent call last):
+  File "C:\Users\billv\AppData\Local\Programs\Python\Python36\lib\multiprocessing\process.py", line 258, in _bootstrap
+    self.run()
+  File "C:\Users\billv\AppData\Local\Programs\Python\Python36\lib\multiprocessing\process.py", line 93, in run
+    self._target(*self._args, **self._kwargs)
+  File "c:\users\billv\3project\soa_driving\pso\soa\optimisation2.py", line 1281, in run_test
+    SP=sp)
+  File "c:\users\billv\3project\soa_driving\pso\soa\optimisation2.py", line 300, in __init__
+    plot=True, is_first = True)
+  File "c:\users\billv\3project\soa_driving\pso\soa\optimisation2.py", line 847, in __evaluateParticlePositions
+    curr_outputs[j, :] = PV
+ValueError: could not broadcast input array from shape (240) into shape (20)
