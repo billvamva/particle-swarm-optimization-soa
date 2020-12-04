@@ -35,3 +35,12 @@ Answer: Possibly object is being modified after each iteration? Would not explai
 
 - Important question: Why is U reshaped from (239,) to (239,1)
 - Find out what X0 is.
+- How is cost calculated exactly?
+
+- NV everything is poloted in _evaluateParticlePositions.
+- Cost is essentially MSE?
+- Is there somewhere where the path is changed if the points in U and T are changed?
+
+- What do I need to change except for SOA output and t? g line 955, 990 and 1009; self.x line 169 ; curr_outputs; look x-value line 1030--> anything using self.m??
+- Ask about 813: How is this used?
+- Issue either with m or with path_to_pso_data
