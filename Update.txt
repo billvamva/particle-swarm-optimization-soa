@@ -63,3 +63,16 @@ ValueError: could not broadcast input array from shape (240) into shape (20)
 - t is used to calculate number of points: analyse.RessponseMeasurements
 
 - How to overcome K in case 'whole_signal' . Start_opt_index, end_opt_index?
+
+MEETING 11/12:
+
+Exception has occurred: IndexError
+index 67 is out of bounds for axis 0 with size 20
+  File "C:\Users\billv\3project\soa_driving\pso\soa\analyse.py", line 170, in __getRiseTime
+    timeTen = self.t[self.idxTen]
+  File "C:\Users\billv\3project\soa_driving\pso\soa\analyse.py", line 33, in __getMeasurements
+    self.__getRiseTime()
+  File "C:\Users\billv\3project\soa_driving\pso\soa\analyse.py", line 24, in __init__
+    self.__getMeasurements()
+  File "C:\Users\billv\3project\pythoncode\project2.py", line 69, in <module>
+    sp = analyse.ResponseMeasurements(init_PV, t).sp.sp
