@@ -18,7 +18,7 @@ import pickle
 
 from scipy import signal
 
-
+from upsampling import ups
 
 class PSO:
     """
@@ -113,6 +113,9 @@ class PSO:
             self.slash = '\\'
 
         self.t = t
+        self.t2 = np.linspace(t[0], t[-1], 240)
+        p = ups(240)
+        self.init_OP = p.create(init_OP)        
         self.init_OP = init_OP
         self.n = n
         self.iter_max = iter_max
@@ -156,7 +159,7 @@ class PSO:
             self.X0 = self.__find_x_init(self.sim_model) 
             self.init_PV = self.__getTransferFunctionOutput(self.sim_model, 
                                                             self.init_OP, 
-                                                            self.t, 
+                                                            self.t2, 
                                                             self.X0) 
         else:
             self.init_PV = self.__getSoaOutput(self.init_OP) 
@@ -174,7 +177,7 @@ class PSO:
         self.gbest_cost = self.pbest_value[self.min_cost_index] # global best val
         self.awg_step_size = (self.max_val - self.min_val) / (2**self.awg_res)
         if self.SP is None:
-            self.SP = analyse.ResponseMeasurements(self.init_PV, self.t).sp.sp 
+            self.SP = analyse.ResponseMeasurements(self.init_PV, self.t2).sp.sp 
         else:
             self.SP = SP
 
@@ -358,7 +361,7 @@ class PSO:
         if self.sim_model != None:
             PV = self.__getTransferFunctionOutput(self.sim_model, 
                                                   OP, 
-                                                  self.t, 
+                                                  self.t2, 
                                                   self.X0) 
         else:
             PV = self.__getSoaOutput(OP) 
@@ -372,7 +375,7 @@ class PSO:
                      index=None, 
                      header=False)
 
-        responseMeasurementsObject = analyse.ResponseMeasurements(PV, self.t) 
+        responseMeasurementsObject = analyse.ResponseMeasurements(PV, self.t2) 
 
         rt = responseMeasurementsObject.riseTime
         st = responseMeasurementsObject.settlingTime
@@ -595,6 +598,18 @@ class PSO:
         Returns:
         - PV = resultant output signal of transfer function
         """
+        U = np.array(U)
+        p = ups(240)
+        U = p.create(U)
+        lenU = U.size
+        lenT = T.size
+        print('DRIVE SIGNAL')
+        print(U)
+        print('TIME VALUES')
+        print(T)
+        print('Size of drive signal {}, size of time values {}'.format(U.size, T.size))
+        print('Dimensions: {}'.format(len(self.t)))
+        T = np.linspace(T[0], T[-1], 240)
         (_, PV, _) = signal.lsim2(tf, U, T, X0=X0, atol=atol)
 
         # ensure lower point of signal >=0 (can occur for sims), otherwise
@@ -791,7 +806,7 @@ class PSO:
         """
 
         if self.record_extra_info == True:
-            curr_outputs = np.zeros((self.n, self.m)) 
+            curr_outputs = np.zeros((self.n, len(self.t2)) 
 
         if plot == True and curr_iter == None:
             sys.exit('method requires arg curr_iter if want to plot')
@@ -811,7 +826,7 @@ class PSO:
             if self.sim_model != None:
                 PV = self.__getTransferFunctionOutput(self.sim_model, 
                                                       OP, 
-                                                      self.t, 
+                                                      self.t2, 
                                                       self.X0) 
             else:
                 PV = self.__getSoaOutput(OP) 
@@ -828,9 +843,9 @@ class PSO:
             
             if plot == True:
                 plt.figure(1) 
-                plt.plot(self.t, PV, c='b') 
+                plt.plot(self.t2, PV, c='b') 
                 plt.figure(2)
-                plt.plot(self.t, OP, c='r')
+                plt.plot(self.t2, OP, c='r')
 
         if plot == True:
         # get best fitness for analysis
@@ -838,7 +853,7 @@ class PSO:
             if self.sim_model != None:
                 best_PV = self.__getTransferFunctionOutput(self.sim_model, 
                                                            particles[min_cost_index,:], 
-                                                           self.t, 
+                                                           self.t2, 
                                                            self.X0) 
             else:
                 best_PV = self.__getSoaOutput(particles[min_cost_index, :])      
@@ -847,11 +862,11 @@ class PSO:
         if plot == True:
             # finalise and save plot
             plt.figure(1)
-            plt.plot(self.t, self.SP, c='g', label='Target SP')
-            plt.plot(self.t, self.init_PV, c='r', label='Initial Output')
-            plt.plot(self.t, best_PV, c='c', label='Best fitness')
-            st_index = analyse.ResponseMeasurements(best_PV, self.t).settlingTimeIndex
-            plt.plot(self.t[st_index], 
+            plt.plot(self.t2, self.SP, c='g', label='Target SP')
+            plt.plot(self.t2, self.init_PV, c='r', label='Initial Output')
+            plt.plot(self.t2, best_PV, c='c', label='Best fitness')
+            st_index = analyse.ResponseMeasurements(best_PV, self.t2).settlingTimeIndex
+            plt.plot(self.t2[st_index], 
                      best_PV[st_index], 
                      marker='x', 
                      markersize=6, 
@@ -866,7 +881,7 @@ class PSO:
             plt.close()
 
             plt.figure(2)
-            plt.plot(self.t, 
+            plt.plot(self.t2, 
                      particles[min_cost_index, :], 
                      c='c', 
                      label='Best fitness')
@@ -1105,9 +1120,9 @@ class PSO:
     
         # plot final output signal
         plt.figure()
-        plt.plot(self.t, self.SP, c='g', label='Target SP')
-        plt.plot(self.t, self.init_PV, c='r', label='Initial Output')
-        plt.plot(self.t, self.gbest_PV, c='c', label='PSO-Optimised Output')
+        plt.plot(self.t2, self.SP, c='g', label='Target SP')
+        plt.plot(self.t2, self.init_PV, c='r', label='Initial Output')
+        plt.plot(self.t2, self.gbest_PV, c='c', label='PSO-Optimised Output')
         st_index = int(rt_st_os_analysis[len(rt_st_os_analysis)-1, 3]) 
         plt.plot(self.t[st_index], 
                  self.gbest_PV[st_index], 
@@ -1124,8 +1139,8 @@ class PSO:
 
         # plot final driving signal
         plt.figure()
-        plt.plot(self.t, self.init_OP, c='r', label='Initial Input')
-        plt.plot(self.t, self.gbest, c='c', label='PSO-Optimised Input')
+        plt.plot(self.t2, self.init_OP, c='r', label='Initial Input')
+        plt.plot(self.t2, self.gbest, c='c', label='PSO-Optimised Input')
         plt.legend(loc='lower right')
         plt.title('Final PSO-Optimised Input Signal')
         plt.xlabel('Time')
@@ -1165,7 +1180,7 @@ class PSO:
 
 
         # save key data
-        t_df = pd.DataFrame(self.t) 
+        t_df = pd.DataFrame(self.t2) 
         init_OP_df = pd.DataFrame(self.init_OP) #
         OP_df = pd.DataFrame(self.gbest) 
         SP_df = pd.DataFrame(self.SP) 
