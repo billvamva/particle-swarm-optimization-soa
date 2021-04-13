@@ -25,6 +25,22 @@ class chaos:
                 min_val = - 1.0,
                 max_val = 1.0, 
                 rep = 50):
+        '''
+        Chaos Optimization PSO
+        
+        Parameters:
+        - n: number of particles
+        - m: dimensions of control signal
+        - q: number of SOAs
+        - sim_model: transfer function for SOA
+        - t2: time signal array
+        - X0: initial steady state value
+        - cost_f: cost function selected
+        - min/max_val: position boundaries
+        - change_range: boolean to determine if range will be changed
+        - map_type: selection of map type as string: tent or logistic map
+        - rep: number of initial repetitions
+        '''
         
         self.n = n
         self.m = m
@@ -83,13 +99,15 @@ class chaos:
             # Randomize part of particle using chaotic mapping
             for g in range(c*self.m, (c+1)*self.m):      
                 p[g] = (np.interp(z[g], [0, 1], [self.LB[g], self.UB[g]]) + gbest[g]) / 2.0
+            
             # Get and Evaluate Output
             fitness[i] = self.get_cost(p)
 
+            # Select Worst particle to change
             idx = np.argsort(dummy_value)[-1]
-
+            
+            # change it if new cost is lower
             if dummy_value[idx] > fitness[i]:
-                print('changed')
 
                 dummy_value[idx] = fitness[i]
 
@@ -102,7 +120,8 @@ class chaos:
             if fitness[i] < gbest_cost:
                 
                 achieved = True
-
+                
+                #update global best, personal best and current position for one aprticle
                 for g in range(0, self.m):
                     gbest[g] = p[g]
                     pbest[0, g] = p[g]
@@ -110,7 +129,9 @@ class chaos:
                 
                 tmp = np.copy(self.LB)
                 
+                # change range for current CPSO iteration
                 if self.change_range:
+                    # determines how much the range should be limited
                     self.a = self.a * (1- (gbest_cost_history[-1] - gbest_cost) / gbest_cost_history[-1])
                     for g in range(0, self.m):
                         self.LB[g] = max(self.LB[g], gbest[g] - self.a * (self.UB[g] - self.LB[g]))
@@ -168,11 +189,13 @@ class chaos:
 
     
     def update(self, x, x_value, pbest, pbest_value, dummy, dummy_value):
-
+        
+        # select the best generated particles
         elite_idxs = np.argsort(dummy_value)[:4 * self.n // 5]
 
         print(elite_idxs)
-
+        
+        # update 4N/5 particles using these elite generated ones
         for j,idx in enumerate(elite_idxs):
 
             for g in range(self.m_c):
@@ -307,6 +330,20 @@ class ol:
                 cost_f,
                 st_importance_factor,
                 SP):
+        '''
+        Orthogonal Learning PSO
+        
+        Parameters:
+        - n: number of particles
+        - D: dimensions of control signal
+        - q: number of SOAs
+        - M: number of columns in OA 
+        - sim_model: transfer function for SOA
+        - t2: time signal array
+        - X0: initial steady state value
+        - cost_f: cost function selected
+        - min/max_val: position boundaries
+        '''
         
         self.m = m
 
@@ -331,16 +368,28 @@ class ol:
         self.st_importance_factor = st_importance_factor
         
         self.SP = SP
+       
         
     
     def evaluate(self, pbest, gbest):
+        '''
+        Performs OL
+        Parameters
+        - pbest
+        - gbest
+        Returns
+        - Guide Particle
+        '''
         
+        # Generate OA
         L = self.OA()
-
+        
+        # Array that holds fitness values
         f = np.ones(len(L))
 
         for i in range(len(L)):
-
+            
+            # Stores values for signal to evaluate
             signal_b = np.zeros(self.m_c)
 
             for j in range(len(L[0])):
@@ -353,13 +402,16 @@ class ol:
                 else:
                     for g in range(j * self.m, (j + 1) * self.m):
                         signal_b[g] = gbest[g]
-                
+            # evaluate each generated combinatino   
             f[i] = self.get_cost(signal_b)
-
+        
+        # select level combination with lowest cost
         idx = np.argsort(f)[0]
-
+        
+        # store fitness value of best OA combination
         signal_b_fit = f[idx]
-
+           
+        # store best OA combination
         for j in range(self.D):
             
             if L[idx, j] == 1:
@@ -373,11 +425,13 @@ class ol:
                 for g in range(j * self.m, (j + 1) * self.m):
                 
                     signal_b[j] = gbest[j]
-
+        
+        # Store information about signal from factor analysis
         signal_p, signal_p_fit = self.factor_analysis(L, f, pbest, gbest)
 
         print(signal_b_fit, signal_p_fit)
-
+        
+        # return signal with smaller cost
         if signal_b_fit < signal_p_fit:
             return signal_p
         
@@ -385,6 +439,9 @@ class ol:
             return signal_b        
 
     def OA(self):
+        '''
+        Generates OA using Zhan's methodology
+        '''
 
         L = np.zeros((self.M + 1, self.M))
 
@@ -417,11 +474,16 @@ class ol:
     
     def factor_analysis(self, L, f, pbest, gbest):
         
+        '''
+        Uses the OA to find the best possible combination through factor analysis
+        '''
+        
         S = np.zeros((self.D ,2))
 
     
         for g in range(0, self.D):
-
+            
+            # Dictionaries to store factor sums for both levels and the counts
             factor_sum = {'p':0, 'g':0}
             count = {'p':0, 'g': 0}
 
@@ -446,7 +508,7 @@ class ol:
         signal_p = np.zeros(self.m_c)
 
         for j in range(self.D):
-            
+            # compare factor analysis for both levels for each factor and select one with lower cost
             if S[j, 0] < S[j, 1]:
                 
                 for g in range(j * self.m, (j + 1) * self.m):
@@ -567,6 +629,23 @@ class cpso_sk:
                 w_init,
                 w_final,
                 step = 'soa'):
+        ''''
+        Cooperative PSO
+         Parameters:
+        - n: number of particles
+        - m: dimensions of control signal
+        - q: number of SOAs
+        - c1, c2: acceleration coefficients
+        - w: inertial weight
+        - context: context vector for function evaluations
+        - sim_model: transfer function for SOA
+        - t2: time signal array
+        - X0: initial steady state value
+        - cost_f: cost function selected
+        - min/max_val: position boundaries
+        - x/pbest/gbest: current/ personal best/global best positions
+        - x_value/pbest_value/gbest_cost: current/personal best/global best cost
+        ''''
         
         self.n = n
 
@@ -644,6 +723,10 @@ class cpso_sk:
     
     
     def partition(self):
+        '''
+        Partitions and optimizes the solution
+        Can be modified for step to be reduced 
+        '''
 
         if self.step == 'soa':
 
@@ -654,6 +737,8 @@ class cpso_sk:
                 self.x[j] = np.copy(self.context)
 
                 for q in range(self.q):
+                    
+                    # adjust range so only one soa is optimized at a time
 
                     for g in range(q * (self.m), (q + 1) * self.m):
 
@@ -706,6 +791,7 @@ class cpso_sk:
                         for g in range(q * (self.m),  (q + 1) * self.m):
                                 self.pbest[j, g] = self.x[j, g]
                     
+                    # if new solution has lower cost, update the context vector
 
                     if self.x_value[q, j] < self.context_cost:
 
